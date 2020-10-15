@@ -15,12 +15,23 @@ namespace ShittyTea
     class Program
     {
         static ITelegramBotClient botClient;
-        static string path = @"C:\Users\Zane Salti\source\repos\ShittyTea\wl.txt";
-        static string[] fileArray = System.IO.File.ReadAllLines(path);
+        static string pathToWL = @"C:\Users\Zane Salti\source\repos\ShittyTea\wl.txt";
+        static string pathToStat = @"C:\Users\Zane Salti\source\repos\ShittyTea\Stat.json";
+        static string[] fileArray = System.IO.File.ReadAllLines(pathToWL);
+        private static bool verb = true;
         static async void Bot_OnMessage(object sender, MessageEventArgs e)
         {
             if (e.Message.Text != null)
             {
+                if(e.Message.Text.Contains("/verbOn", StringComparison.OrdinalIgnoreCase))
+                {
+                    verb = true;
+                }
+                else if(e.Message.Text.Contains("/verbOff", StringComparison.OrdinalIgnoreCase))
+                {
+                    verb = false;
+                }
+
                 Console.WriteLine($"Recieved message in chat {e.Message.Chat.Id}.");
                 /*await botClient.SendTextMessageAsync(
                     chatId: e.Message.Chat,
@@ -31,7 +42,10 @@ namespace ShittyTea
                 {
                     if (e.Message.Text.Contains(s, StringComparison.OrdinalIgnoreCase))
                     {
-                        await botClient.SendTextMessageAsync(e.Message.Chat, $"{e.Message.From.FirstName}, congrats u get a 1 cow credit.");
+                        if (verb == true)
+                        {
+                            await botClient.SendTextMessageAsync(e.Message.Chat, $"{e.Message.From.FirstName}, congrats u get a 1 cow credit.");
+                        }
                         Stats(s, e.Message.From.Username, 1);
                         break;
                     } 
@@ -107,10 +121,11 @@ namespace ShittyTea
                 {
                     await botClient.SendTextMessageAsync(e.Message.Chat, "To get full list of commands do /IdoNotKnowTheSyntaxOfThisBotAndMyLifeIsFullOfShameAndSorrow");
                 }
-                else if (e.Message.Text.Contains("/IdoNotKnowTheSyntaxOfThisBotAndMyLifeIsFullOfShameAndSorrow", StringComparison.OrdinalIgnoreCase))
+                else if (e.Message.Text.Contains("/IdoNotKnowTheSyntaxOfThisBot", StringComparison.OrdinalIgnoreCase))
                 {
-                    await botClient.SendTextMessageAsync(e.Message.Chat, "/IdoNotKnowTheSyntaxOfThisBotAndMyLifeIsFullOfShameAndSorrow,IsuckAtEverythingIncludingUsingAbotForTelegram -- Help Menu\n" +
-                        "/balance -- View how many cow credits you have\n/creditsFull -- View everyones available credits\n/transfer<#ofCredits>to<username> -- Give someone credits(no spaces)\n/ctfUp -- Upcoming ctf's according to ctftime");
+                    await botClient.SendTextMessageAsync(e.Message.Chat, "/IdoNotKnowTheSyntaxOfThisBot -- Help Menu\n" +
+                        "/balance -- View how many cow credits you have\n/creditsFull -- View everyones available credits\n/transfer<#ofCredits>to<username> -- Give someone credits(no spaces)\n/ctfUp -- Upcoming ctf's according to ctftime" + 
+                        "\n/verbOff -- Turns off getting told when you are given credit for saying something\n/verbOn -- Turns on getting told when you are given credit.");
                 }
             }
         }
@@ -135,7 +150,7 @@ namespace ShittyTea
         {
             string suAmount = amount.Remove(0, "/transfer".Length);
             Console.WriteLine(suAmount);
-            string json = System.IO.File.ReadAllText(@"C:\Users\Zane Salti\source\repos\ShittyTea\Stat.json");
+            string json = System.IO.File.ReadAllText(pathToStat);
             dynamic jsonObj = JsonConvert.DeserializeObject(json);
             if (jsonObj["Credits"][0][fromUsername] == null || jsonObj["Credits"][0][fromUsername] == 0)
             {
@@ -173,7 +188,7 @@ namespace ShittyTea
                 jsonObj["Credits"][0][fromUsername] = fromBalanceNewTrans;
                 jsonObj["Credits"][0][toUsername] = recBalanceNewTrans;
                 string output = JsonConvert.SerializeObject(jsonObj, Newtonsoft.Json.Formatting.Indented);
-                System.IO.File.WriteAllText(@"C:\Users\Zane Salti\source\repos\ShittyTea\Stat.json", output);
+                System.IO.File.WriteAllText(pathToStat, output);
                 return $"{fromUsername} sent {realAmount} credits to {toUsername}";
             }
 
@@ -181,7 +196,7 @@ namespace ShittyTea
         }
         private static string ReadStats(string username, string firstName, string mode)
         {
-            string json = System.IO.File.ReadAllText(@"C:\Users\Zane Salti\source\repos\ShittyTea\Stat.json");
+            string json = System.IO.File.ReadAllText(pathToStat);
             dynamic jsonObj = JsonConvert.DeserializeObject(json);
             if (mode.Equals("balance"))
             {
@@ -219,7 +234,7 @@ namespace ShittyTea
         }
         private static void Stats(string word, string username, int credits)
         {
-            string json = System.IO.File.ReadAllText(@"C:\Users\Zane Salti\source\repos\ShittyTea\Stat.json");
+            string json = System.IO.File.ReadAllText(pathToStat);
             dynamic jsonObj = JsonConvert.DeserializeObject(json);
             if (jsonObj["Credits"][0][username] != null)
             {
@@ -242,7 +257,7 @@ namespace ShittyTea
 
 
             string output = JsonConvert.SerializeObject(jsonObj, Newtonsoft.Json.Formatting.Indented);
-            System.IO.File.WriteAllText(@"C:\Users\Zane Salti\source\repos\ShittyTea\Stat.json", output);
+            System.IO.File.WriteAllText(pathToStat, output);
         }
         static void Main(string[] args)
         {
