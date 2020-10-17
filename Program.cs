@@ -9,14 +9,16 @@ using Microsoft.VisualBasic;
 using System.Diagnostics;
 using Telegram.Bot.Types;
 using HtmlAgilityPack;
+using System.Threading.Tasks;
+using Telegram.Bot.Types.InputFiles;
 
 namespace ShittyTea
 {
-    class Program
+    static class Program
     {
         static ITelegramBotClient botClient;
-        static string pathToWL = @"C:\Users\Zane Salti\source\repos\ShittyTea\wl.txt";
-        static string pathToStat = @"C:\Users\Zane Salti\source\repos\ShittyTea\Stat.json";
+        static string pathToWL = @"/home/ec2-user/cow/ShittyTea/wl.txt";
+        static string pathToStat = @"/home/ec2-user/cow/ShittyTea/Stat.json";
         static string[] fileArray = System.IO.File.ReadAllLines(pathToWL);
         private static bool verb = true;
         static async void Bot_OnMessage(object sender, MessageEventArgs e)
@@ -61,7 +63,34 @@ namespace ShittyTea
                 } else if (e.Message.Text.Contains("/creditsFull", StringComparison.OrdinalIgnoreCase))
                 {
                     await botClient.SendTextMessageAsync(e.Message.Chat, $"{ReadStats(e.Message.From.Username, e.Message.From.FirstName, "creditsFull")}");
-                } else if (e.Message.Text.Contains("/transfer", StringComparison.OrdinalIgnoreCase))
+                } else if (e.Message.Text.Contains("/searchsploit -m", StringComparison.OrdinalIgnoreCase))
+		{
+			string[] splitText = e.Message.Text.Split("searchsploit -m ");
+			try
+			{
+				string pathModule = splitText[1].Replace("../", "");
+				using (FileStream fs = System.IO.File.OpenRead($@"/opt/exploitdb/exploits/{pathModule}"))
+				{
+					InputOnlineFile inputOnlineFile = new InputOnlineFile(fs, "UrExploit");
+					await botClient.SendDocumentAsync(e.Message.Chat, inputOnlineFile);
+				}
+				//await botClient.SendDocumentAsync(e.Message.Chat, $@"/opt/exploitdb/exploits/{pathModule}");
+			} catch
+			{
+				await botClient.SendTextMessageAsync(e.Message.Chat, "lol no");
+			}
+		} else if (e.Message.Text.Contains("/searchsploit", StringComparison.OrdinalIgnoreCase))
+		{
+			string[] splitText = e.Message.Text.Split("searchsploit");
+			try
+			{
+				//string output = $"searchsploit \"{splitText[1]}\"".Bash();
+				await botClient.SendTextMessageAsync(e.Message.Chat, $"{$"searchsploit \"{splitText[1]}\"".Bash()}");
+			} catch 
+			{
+
+			}
+		} else if (e.Message.Text.Contains("/transfer", StringComparison.OrdinalIgnoreCase))
                 {
                     string[] transferData = e.Message.Text.Split("to");
                     try
@@ -69,7 +98,7 @@ namespace ShittyTea
                         await botClient.SendTextMessageAsync(e.Message.Chat, $"{Transfer(e.Message.From.Username, transferData[0], transferData[1])}");
                     } catch
                     {
-
+			await botClient.SendTextMessageAsync(e.Message.Chat, "oops");
                     }
                     /*
                     string sendToUser = e.Message.Text;
@@ -125,10 +154,30 @@ namespace ShittyTea
                 {
                     await botClient.SendTextMessageAsync(e.Message.Chat, "/IdoNotKnowTheSyntaxOfThisBot -- Help Menu\n" +
                         "/balance -- View how many cow credits you have\n/creditsFull -- View everyones available credits\n/transfer<#ofCredits>to<username> -- Give someone credits(no spaces)\n/ctfUp -- Upcoming ctf's according to ctftime" + 
-                        "\n/verbOff -- Turns off getting told when you are given credit for saying something\n/verbOn -- Turns on getting told when you are given credit.");
+                        "\n/verbOff -- Turns off getting told when you are given credit for saying something\n/verbOn -- Turns on getting told when you are given credit.\n/searchsploit <term> -- Gives exploits back (if a lot of exploits it wont spit any).\n/searchsploit -m <path> -- Sends exploit over telegram.\nA lot of commands are possition sensitive like the path has to be one space after the m but transfer needs to have no space inbetween \"to\" and username so make sure you use commands exactly possitioned like in this menu.");
                 }
             }
         }
+	private static string Bash(this string cmd)
+	{
+		string escapedArgs = cmd.Replace("\"", "\\\"");
+		Process process = new Process()
+		{
+			StartInfo = new ProcessStartInfo
+			{
+				FileName = "/bin/bash",
+				Arguments = $"-c \"{escapedArgs}\"",
+				RedirectStandardOutput = true,
+				UseShellExecute = false,
+				CreateNoWindow = true,
+			}
+		};
+		process.Start();
+		string result = process.StandardOutput.ReadToEnd();
+		string refResult = result.Replace("-", "");
+		process.WaitForExit();
+		return refResult;
+	}
         private static string CTFupcoming()
         {
             int count = 0;
