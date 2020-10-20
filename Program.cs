@@ -23,7 +23,7 @@ namespace ShittyTea
         private static bool verb = true;
         static async void Bot_OnMessage(object sender, MessageEventArgs e)
         {
-            if (e.Message.Text != null)
+            if (e.Message.Text != null && e.Message.From.Username != null)
             {
                 if(e.Message.Text.Contains("/verbOn", StringComparison.OrdinalIgnoreCase))
                 {
