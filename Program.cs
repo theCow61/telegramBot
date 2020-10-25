@@ -11,14 +11,16 @@ using Telegram.Bot.Types;
 using HtmlAgilityPack;
 using System.Threading.Tasks;
 using Telegram.Bot.Types.InputFiles;
+using System.Text.RegularExpressions;
+using System.Text;
 
 namespace ShittyTea
 {
     static class Program
     {
         static ITelegramBotClient botClient;
-        static string pathToWL = @"/home/ec2-user/cow/ShittyTea/wl.txt";
-        static string pathToStat = @"/home/ec2-user/cow/ShittyTea/Stat.json";
+        static string pathToWL = @"wl.txt";
+        static string pathToStat = @"Stat.json";
         static string[] fileArray = System.IO.File.ReadAllLines(pathToWL);
         private static bool verb = true;
         static async void Bot_OnMessage(object sender, MessageEventArgs e)
@@ -64,7 +66,7 @@ namespace ShittyTea
                 {
                     await botClient.SendTextMessageAsync(e.Message.Chat, $"{ReadStats(e.Message.From.Username, e.Message.From.FirstName, "creditsFull")}");
                 } else if (e.Message.Text.Contains("/searchsploit -m", StringComparison.OrdinalIgnoreCase))
-		{
+		    {
 			string[] splitText = e.Message.Text.Split("searchsploit -m ");
 			try
 			{
@@ -92,10 +94,14 @@ namespace ShittyTea
 			}
 		} else if (e.Message.Text.Contains("/transfer", StringComparison.OrdinalIgnoreCase))
                 {
-                    string[] transferData = e.Message.Text.Split("to");
+                    //string[] transferData = e.Message.Text.Split("to");
+                    var match = Regex.Match(e.Message.Text, @"/transfer (?<amount>.*) (?<touser>.*)");
+                    string amount = Convert.ToString(match.Groups["amount"]);
+                    string toUser = Convert.ToString(match.Groups["touser"]);
+                    toUser.Replace("@", "");
                     try
                     {
-                        await botClient.SendTextMessageAsync(e.Message.Chat, $"{Transfer(e.Message.From.Username, transferData[0], transferData[1])}");
+                        await botClient.SendTextMessageAsync(e.Message.Chat, $"{Transfer(e.Message.From.Username, amount, toUser)}");
                     } catch
                     {
 			await botClient.SendTextMessageAsync(e.Message.Chat, "oops");
@@ -153,7 +159,7 @@ namespace ShittyTea
                 else if (e.Message.Text.Contains("/IdoNotKnowTheSyntaxOfThisBot", StringComparison.OrdinalIgnoreCase))
                 {
                     await botClient.SendTextMessageAsync(e.Message.Chat, "/IdoNotKnowTheSyntaxOfThisBot -- Help Menu\n" +
-                        "/balance -- View how many cow credits you have\n/creditsFull -- View everyones available credits\n/transfer<#ofCredits>to<username> -- Give someone credits(no spaces)\n/ctfUp -- Upcoming ctf's according to ctftime" + 
+                        "/balance -- View how many cow credits you have\n/creditsFull -- View everyones available credits\n/transfer <#ofCredits> <username> -- Give someone credits(no spaces)\n/ctfUp -- Upcoming ctf's according to ctftime" + 
                         "\n/verbOff -- Turns off getting told when you are given credit for saying something\n/verbOn -- Turns on getting told when you are given credit.\n/searchsploit <term> -- Gives exploits back (if a lot of exploits it wont spit any).\n/searchsploit -m <path> -- Sends exploit over telegram.\nA lot of commands are possition sensitive like the path has to be one space after the m but transfer needs to have no space inbetween \"to\" and username so make sure you use commands exactly possitioned like in this menu.");
                 }
             }
@@ -197,8 +203,7 @@ namespace ShittyTea
         }
         private static string Transfer(string fromUsername, string amount, string toUsername)
         {
-            string suAmount = amount.Remove(0, "/transfer".Length);
-            Console.WriteLine(suAmount);
+            Console.WriteLine(amount);
             string json = System.IO.File.ReadAllText(pathToStat);
             dynamic jsonObj = JsonConvert.DeserializeObject(json);
             if (jsonObj["Credits"][0][fromUsername] == null || jsonObj["Credits"][0][fromUsername] == 0)
@@ -216,7 +221,7 @@ namespace ShittyTea
             int realAmount = 0;
             try
             {
-                realAmount = Convert.ToInt32(suAmount);
+                realAmount = Convert.ToInt32(amount);
                 if (realAmount <= 0)
                 {
                     return $"Fuck off {fromUsername}.";
@@ -224,7 +229,7 @@ namespace ShittyTea
             }
             catch
             {
-                return $"{suAmount} is not valid as number tard";
+                return $"{amount} is not valid as number tard";
             }
             if (fromBalance < realAmount)
             {
