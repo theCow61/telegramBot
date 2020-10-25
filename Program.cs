@@ -1,4 +1,5 @@
-﻿using System;
+﻿using System.Transactions;
+using System;
 using System.Collections.Generic;
 using Telegram.Bot;
 using Telegram.Bot.Args;
@@ -98,10 +99,18 @@ namespace ShittyTea
                     var match = Regex.Match(e.Message.Text, @"/transfer (?<amount>.*) (?<touser>.*)");
                     string amount = Convert.ToString(match.Groups["amount"]);
                     string toUser = Convert.ToString(match.Groups["touser"]);
-                    toUser.Replace("@", "");
+                    string toUserClean = "";
+                    if(toUser[0] == '@')
+                    {
+                        toUserClean = toUser.Remove(0, 1);
+                    }
+                    else
+                    {
+                        toUserClean = toUser;
+                    }
                     try
                     {
-                        await botClient.SendTextMessageAsync(e.Message.Chat, $"{Transfer(e.Message.From.Username, amount, toUser)}");
+                        await botClient.SendTextMessageAsync(e.Message.Chat, $"{Transfer(e.Message.From.Username, amount, toUserClean)}");
                     } catch
                     {
 			await botClient.SendTextMessageAsync(e.Message.Chat, "oops");
