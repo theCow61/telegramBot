@@ -169,7 +169,38 @@ namespace ShittyTea
                 {
                     await botClient.SendTextMessageAsync(e.Message.Chat, "/IdoNotKnowTheSyntaxOfThisBot -- Help Menu\n" +
                         "/balance -- View how many cow credits you have\n/creditsFull -- View everyones available credits\n/transfer <#ofCredits> <username> -- Give someone credits(no spaces)\n/ctfUp -- Upcoming ctf's according to ctftime" + 
-                        "\n/verbOff -- Turns off getting told when you are given credit for saying something\n/verbOn -- Turns on getting told when you are given credit.\n/searchsploit <term> -- Gives exploits back (if a lot of exploits it wont spit any).\n/searchsploit -m <path> -- Sends exploit over telegram.\nA lot of commands are possition sensitive like the path has to be one space after the m but transfer needs to have no space inbetween \"to\" and username so make sure you use commands exactly possitioned like in this menu.");
+                        "\n/verbOff -- Turns off getting told when you are given credit for saying something\n/verbOn -- Turns on getting told when you are given credit.\n/searchsploit <term> -- Gives exploits back (if a lot of exploits it wont spit any).\n/searchsploit -m <path> -- Sends exploit over telegram.\nA lot of commands are possition sensitive like the path has to be one space after the m but transfer needs to have no space inbetween \"to\" and username so make sure you use commands exactly possitioned like in this menu." + 
+                        "\n/IamGayIfIuseThis \"(Message)\" (# of spam)");
+                }
+                else if(e.Message.Text.Contains("IamGayIfIuseThis", StringComparison.OrdinalIgnoreCase))
+                {
+                    string toCompare = "/(?i)iamgayifiusethis \"(?<spamsg>.*)\" (?<count>.*)";
+                    var match = Regex.Match(e.Message.Text, toCompare);
+                    string messageToSpam = "";
+                    int count = 0;
+                    try
+                    {
+                        messageToSpam = Convert.ToString(match.Groups["spamsg"]);
+                        Console.WriteLine(messageToSpam);
+                        string stCount = Convert.ToString(match.Groups["count"]);
+                        count = Convert.ToInt32(stCount);
+                        Console.WriteLine(count);
+                        if (count <= 0)
+                        {
+                            await botClient.SendTextMessageAsync(e.Message.Chat, "format is /iamgayifiusethis \"(message)\" (amount spammed)");
+                        }
+                        else 
+                        {
+                            for(int i = 1; i <= count; i++)
+                            {
+                                await botClient.SendTextMessageAsync(e.Message.Chat, $"{messageToSpam}");
+                            }
+                        }
+                    }
+                    catch
+                    {
+                        await botClient.SendTextMessageAsync(e.Message.Chat, "Format is /iamgayifiusethis \"(message)\" (amount to spam)");
+                    }
                 }
             }
         }
