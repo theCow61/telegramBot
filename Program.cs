@@ -172,7 +172,7 @@ namespace ShittyTea
                         "\n/verbOff -- Turns off getting told when you are given credit for saying something\n/verbOn -- Turns on getting told when you are given credit.\n/searchsploit <term> -- Gives exploits back (if a lot of exploits it wont spit any).\n/searchsploit -m <path> -- Sends exploit over telegram.\nA lot of commands are possition sensitive like the path has to be one space after the m but transfer needs to have no space inbetween \"to\" and username so make sure you use commands exactly possitioned like in this menu." + 
                         "\n/IamGayIfIuseThis \"(Message)\" (# of spam)");
                 }
-                else if(e.Message.Text.Contains("IamGayIfIuseThis", StringComparison.OrdinalIgnoreCase))
+                else if(e.Message.Text.Contains("/IamGayIfIuseThis", StringComparison.OrdinalIgnoreCase))
                 {
                     string toCompare = "/(?i)iamgayifiusethis \"(?<spamsg>.*)\" (?<count>.*)";
                     var match = Regex.Match(e.Message.Text, toCompare);
@@ -201,6 +201,13 @@ namespace ShittyTea
                     {
                         await botClient.SendTextMessageAsync(e.Message.Chat, "Format is /iamgayifiusethis \"(message)\" (amount to spam)");
                     }
+                }
+                else if(e.Message.Text.Equals("/EEFON"))
+                {
+                    Eef eef = new Eef();
+                    eef.rootPath = "";
+                    eef.userWhoInvoked = e.Message.From.Username;
+                    eef.poop();
                 }
             }
         }
