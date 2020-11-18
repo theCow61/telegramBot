@@ -14,15 +14,18 @@ using System.Threading.Tasks;
 using Telegram.Bot.Types.InputFiles;
 using System.Text.RegularExpressions;
 using System.Text;
+using System.IO;
 
 namespace ShittyTea
 {
     static class Program
     {
         static ITelegramBotClient botClient;
-        static string pathToWL = @"wl.txt";
-        static string pathToStat = @"Stat.json";
-        static string[] fileArray = System.IO.File.ReadAllLines(pathToWL);
+        static string pathToProj;
+        static string pathToWL;
+        static string pathToStat;
+        static string pathToExp;
+        static string[] fileArray;
         private static bool verb = true;
         static async void Bot_OnMessage(object sender, MessageEventArgs e)
         {
@@ -72,7 +75,7 @@ namespace ShittyTea
 			try
 			{
 				string pathModule = splitText[1].Replace("../", "");
-				using (FileStream fs = System.IO.File.OpenRead($@"/opt/exploitdb/exploits/{pathModule}"))
+				using (FileStream fs = System.IO.File.OpenRead($@"{pathToExp}{pathModule}"))
 				{
 					InputOnlineFile inputOnlineFile = new InputOnlineFile(fs, "UrExploit");
 					await botClient.SendDocumentAsync(e.Message.Chat, inputOnlineFile);
@@ -362,7 +365,15 @@ namespace ShittyTea
         }
         static void Main(string[] args)
         {
-            botClient = new TelegramBotClient("1255929985:AAFZVSUX-nxjTXGb15RFA-mXt0GiPam7sWs");
+            string json = System.IO.File.ReadAllText("config.json");
+            dynamic jsonObj = JsonConvert.DeserializeObject(json);
+            pathToProj = jsonObj["Settings"]["PathToProject"];
+            pathToWL = pathToProj + jsonObj["Settings"]["Wordlist"];
+            pathToStat = pathToProj + jsonObj["Settings"]["Stat"];
+            pathToExp = jsonObj["Settings"]["PathToExploitdb"];
+            string token = jsonObj["Settings"]["Token"];
+            fileArray = System.IO.File.ReadAllLines(pathToWL);
+            botClient = new TelegramBotClient(token);
             var me = botClient.GetMeAsync().Result;
             Console.WriteLine($"Hey fags, I am {me.Id} but u can call me {me.FirstName}.");
             botClient.OnMessage += Bot_OnMessage;
