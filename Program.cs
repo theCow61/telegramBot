@@ -13,20 +13,34 @@ using HtmlAgilityPack;
 using System.Threading.Tasks;
 using Telegram.Bot.Types.InputFiles;
 using System.Text.RegularExpressions;
+using Telegram.Bot.Types.Enums;
 using System.Text;
-using System.IO;
-
+using Amazon;
+using Amazon.S3;
+using Amazon.S3.Transfer;
+using Amazon.Runtime;
+using Amazon.Runtime.CredentialManagement;
+//MAKE IT OBJECT INSTANCE, I HAVE TO DECLARE GLOBALLY EACH VARIABLE FROM CONFIG.JSON TO USE IT WHICH IS INNIFIECIENT
 namespace ShittyTea
 {
     static class Program
     {
-        static ITelegramBotClient botClient;
-        static string pathToProj;
-        static string pathToWL;
-        static string pathToStat;
-        static string pathToExp;
-        static string[] fileArray;
+        private static ITelegramBotClient botClient;
+        private static string pathToProj;
+        private static string pathToWL;
+        private static string pathToStat;
+        private static string pathToExp;
+        private static string[] fileArray;
         private static bool verb = true;
+
+        //aws
+
+        private static string bucketName;
+        private static string AWSandLocalfolderContainer;
+        //private static readonly RegionEndpoint bucketRegion = RegionEndpoint.USEast2; GOTO WHERE awsWorker.bucketRegion is set to change
+        //private static AWSCredentials credentials;
+
+        //
         static async void Bot_OnMessage(object sender, MessageEventArgs e)
         {
             if (e.Message.Text != null && e.Message.From.Username != null)
@@ -173,7 +187,7 @@ namespace ShittyTea
                     await botClient.SendTextMessageAsync(e.Message.Chat, "/IdoNotKnowTheSyntaxOfThisBot -- Help Menu\n" +
                         "/balance -- View how many cow credits you have\n/creditsFull -- View everyones available credits\n/transfer <#ofCredits> <username> -- Give someone credits(no spaces)\n/ctfUp -- Upcoming ctf's according to ctftime" + 
                         "\n/verbOff -- Turns off getting told when you are given credit for saying something\n/verbOn -- Turns on getting told when you are given credit.\n/searchsploit <term> -- Gives exploits back (if a lot of exploits it wont spit any).\n/searchsploit -m <path> -- Sends exploit over telegram.\nA lot of commands are possition sensitive like the path has to be one space after the m but transfer needs to have no space inbetween \"to\" and username so make sure you use commands exactly possitioned like in this menu." + 
-                        "\n/IamGayIfIuseThis \"(Message)\" (# of spam)");
+                        "\n/IamGayIfIuseThis \"(Message)\" (# of spam)\nUpload a single document/file with the caption of /upload for it to upload to AWS\n/download <file name> -- Have telegram send you file from AWS");
                 }
                 else if(e.Message.Text.Contains("/IamGayIfIuseThis", StringComparison.OrdinalIgnoreCase))
                 {
@@ -205,15 +219,72 @@ namespace ShittyTea
                         await botClient.SendTextMessageAsync(e.Message.Chat, "Format is /iamgayifiusethis \"(message)\" (amount to spam)");
                     }
                 }
-                else if(e.Message.Text.Equals("/EEFON"))
+                /*else if(e.Message.Text.Equals("/upload"))
                 {
-                    Eef eef = new Eef();
-                    eef.rootPath = "";
-                    eef.userWhoInvoked = e.Message.From.Username;
-                    eef.poop();
+                    //credentials = new StoredProfileAWSCredentials("spikey");
+                    s3Client = new AmazonS3Client(bucketRegion);
+                    UploadFileAsync().Wait();
+                }
+                else if(e.Message.Text.Contains("/uptoad"))
+                {
+                    Console.WriteLine("emoji man");
+                    var file = await botClient.GetFileAsync(e.Message.Document.FileId);
+                    FileStream fs = new FileStream("trest.txt", FileMode.Create);
+                    await botClient.DownloadFileAsync(file.FilePath, fs);
+                }
+                */
+                else if(e.Message.Text.Contains("/download"))
+                {
+                    try
+                    {
+                        var match = Regex.Match(e.Message.Text, @"/download (?<path>.*)");
+                        string givinPath = Convert.ToString(match.Groups["path"]);
+                        AWSworker awsWorker = new AWSworker();
+                        awsWorker.bucketName = bucketName;
+                        awsWorker.bucketRegion = RegionEndpoint.USEast2;
+                        awsWorker.filePlacement = $"{AWSandLocalfolderContainer}{givinPath}";
+                        awsWorker.assignS3();
+                        await awsWorker.DownloadFileAsync();
+
+                        using (FileStream fs = System.IO.File.OpenRead($@"{AWSandLocalfolderContainer}{givinPath}"))
+                        {
+                            InputOnlineFile inputOnlineFile = new InputOnlineFile(fs, givinPath);
+                            await botClient.SendDocumentAsync(e.Message.Chat, inputOnlineFile);
+                        }
+                    }
+                    catch (Exception ea)
+                    {
+                        Console.WriteLine(ea);
+                    }
+                }
+            }
+
+            else if(e.Message.Type == MessageType.Document)
+            {
+                if(e.Message.Caption == "/upload")
+                {
+                    //s3Client = new AmazonS3Client(bucketRegion);
+                    var file = await botClient.GetFileAsync(e.Message.Document.FileId);
+                    //FileStream fs = new FileStream(file.FilePath, FileAc);
+                    //await botClient.DownloadFileAsync(file.FilePath, fs);
+                    //fs.Close();
+                    //fs.Dispose();
+                    MemoryStream ms = new MemoryStream();
+                    await botClient.DownloadFileAsync(file.FilePath, ms);
+                    //await UploadFileAsync(ms, e.Message.Document.FileName);
+
+                    AWSworker awsWorker = new AWSworker();
+                    awsWorker.bucketName = bucketName;
+                    awsWorker.bucketRegion = RegionEndpoint.USEast2;
+                    awsWorker.ms = ms;
+                    awsWorker.filePlacement = $"{AWSandLocalfolderContainer}{e.Message.Document.FileName}";
+                    awsWorker.assignS3();
+                    await awsWorker.UploadFileAsync();
+
                 }
             }
         }
+
 	private static string Bash(this string cmd)
 	{
 		string escapedArgs = cmd.Replace("\"", "\\\"");
@@ -363,8 +434,10 @@ namespace ShittyTea
             string output = JsonConvert.SerializeObject(jsonObj, Newtonsoft.Json.Formatting.Indented);
             System.IO.File.WriteAllText(pathToStat, output);
         }
-        static void Main(string[] args)
+
+        private static void setConfigOps()
         {
+
             string json = System.IO.File.ReadAllText("config.json");
             dynamic jsonObj = JsonConvert.DeserializeObject(json);
             pathToProj = jsonObj["Settings"]["PathToProject"];
@@ -373,7 +446,14 @@ namespace ShittyTea
             pathToExp = jsonObj["Settings"]["PathToExploitdb"];
             string token = jsonObj["Settings"]["Token"];
             fileArray = System.IO.File.ReadAllLines(pathToWL);
+            //aws
+            bucketName = jsonObj["Settings"]["AWSbucketName"];
+            AWSandLocalfolderContainer = jsonObj["Settings"]["AWSandLocalContainFolder"];
             botClient = new TelegramBotClient(token);
+        }
+        static void Main(string[] args)
+        {
+            setConfigOps();
             var me = botClient.GetMeAsync().Result;
             Console.WriteLine($"Hey fags, I am {me.Id} but u can call me {me.FirstName}.");
             botClient.OnMessage += Bot_OnMessage;

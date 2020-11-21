@@ -1,9 +1,11 @@
 {
     "Settings": {
-        "PathToProject": "/home/spikes/Workspace/Documents/telegramBot/",
+        "PathToProject": "/home/spikes/Workspace/telegramBot/",
         "PathToExploitdb": "/usr/share/exploitdb/exploits/",
         "Wordlist": "wl.txt",
         "Stat": "Stat.json",
-        "Token": "1255929985:AAFZVSUX-nxjTXGb15RFA-mXt0GiPam7sWs"
+        "Token": "1255929985:AAFZVSUX-nxjTXGb15RFA-mXt0GiPam7sWs",
+        "AWSbucketName": "mycowbucket",
+        "AWSandLocalContainFolder": "telegram/"
     }
 }
