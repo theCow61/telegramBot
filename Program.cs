@@ -181,6 +181,7 @@ namespace ShittyTea
                 else if (e.Message.Text.Contains("/help", StringComparison.OrdinalIgnoreCase))
                 {
                     await botClient.SendTextMessageAsync(e.Message.Chat, "To get full list of commands do /IdoNotKnowTheSyntaxOfThisBotAndMyLifeIsFullOfShameAndSorrow");
+                    await botClient.SendTextMessageAsync(e.Message.Chat, "To get list of AWS commands do /aws");
                 }
                 else if (e.Message.Text.Contains("/IdoNotKnowTheSyntaxOfThisBot", StringComparison.OrdinalIgnoreCase))
                 {
@@ -233,6 +234,11 @@ namespace ShittyTea
                     await botClient.DownloadFileAsync(file.FilePath, fs);
                 }
                 */
+                else if (e.Message.Text.Contains("/aws"))
+                {
+                    await botClient.SendTextMessageAsync(e.Message.Chat, "/aws -- Help Menu.\n/download <filePath> -- Sends file from AWS through telegram.\n/ls -- List all folders and files\n/ls <directory> -- List all files and folders within directory\n/rm directoryName/directoryToDelete/ -- Removes directory if no files inside though will delete empty folders regardless without specifying, risky command\n/rm directoryName/fileName.txt -- Removes file in root location or directory specified\n/rm command distinguishes files and folders with / and no / at end\n" +
+                    "For uploading documents and files, a / at end means that file will be uploaded to that directory(Directory will be made if doesn't exist) with original filename\nNo / at end means file will be named what you gave it and will be uploaded to directory if you specified to do so in path\nCaption \"/upload directoryName/modifiedName.txt\" will upload to directory specified with modified file name\nCaption \"/upload directoryName/\" will upload to that directory with original filename\nCaption \"/upload modifiedName\" will upload to root of AWS with modified file name");
+                }
                 else if(e.Message.Text.Contains("/download"))
                 {
                     try
@@ -249,20 +255,115 @@ namespace ShittyTea
                         using (FileStream fs = System.IO.File.OpenRead($@"{AWSandLocalfolderContainer}{givinPath}"))
                         {
                             InputOnlineFile inputOnlineFile = new InputOnlineFile(fs, givinPath);
-                            await botClient.SendDocumentAsync(e.Message.Chat, inputOnlineFile);
+                            //await botClient.SendDocumentAsync(e.Message.Chat, inputOnlineFile);
+                            await botClient.SendDocumentAsync(
+                                chatId: e.Message.Chat,
+                                document: inputOnlineFile,
+                                replyToMessageId: e.Message.MessageId
+                            );
+                            fs.Close();
+                            System.IO.File.Delete($@"{AWSandLocalfolderContainer}{givinPath}");
                         }
+                        
                     }
                     catch (Exception ea)
                     {
                         Console.WriteLine(ea);
                     }
                 }
+                else if(e.Message.Text.Contains("/ls"))
+                {
+                    var match = Regex.Match(e.Message.Text, @"/ls (?<path>.*)");
+                    string givinPath = Convert.ToString(match.Groups["path"]);
+                    AWSworker awsWorker = new AWSworker();
+                    awsWorker.bucketName = bucketName;
+                    awsWorker.bucketRegion = RegionEndpoint.USEast2;
+                    awsWorker.AWSfoldRoot = AWSandLocalfolderContainer;
+                    if(givinPath != null)
+                    {
+                        awsWorker.filePlacement = $"{AWSandLocalfolderContainer}{givinPath}";
+                    }
+                    else
+                    {
+                        awsWorker.filePlacement = $"{AWSandLocalfolderContainer}";
+                    }
+                    awsWorker.assignS3();
+                    await awsWorker.ListingObjectsAsync();
+                    await botClient.SendTextMessageAsync(
+                        chatId: e.Message.Chat,
+                        text: awsWorker.lsSpit,
+                        replyToMessageId: e.Message.MessageId
+                    );
+                }
+                else if(e.Message.Text.Contains("/rm"))
+                {
+                    var match = Regex.Match(e.Message.Text, @"/rm (?<path>.*)");
+                    string givinPath = Convert.ToString(match.Groups["path"]);
+                    if (e.Message.Text.Equals("/rm")) {}
+                    if (givinPath.EndsWith('/'))
+                    {
+                        //folder
+                        AWSworker awsWorker = new AWSworker();
+                        awsWorker.bucketName = bucketName;
+                        awsWorker.bucketRegion = RegionEndpoint.USEast2;
+                        awsWorker.filePlacement = $"{AWSandLocalfolderContainer}{givinPath}";
+                        awsWorker.AWSfoldRoot = AWSandLocalfolderContainer;
+                        awsWorker.assignS3();
+                        await awsWorker.ListingObjectsAsync();
+                        if (awsWorker.lsSpit.Contains(givinPath))
+                        {
+                            await awsWorker.DeleteObjectBucketAsync();
+                            await botClient.SendTextMessageAsync(
+                                chatId: e.Message.Chat,
+                                text: $"Deleting directory {givinPath}\nWont be deleted if files exist inside.",
+                                replyToMessageId: e.Message.MessageId
+                            );
+                        }
+                        else
+                        {
+                            await botClient.SendTextMessageAsync(
+                                chatId: e.Message.Chat,
+                                text: $"Could not find directory {givinPath}\nMake sure you signal wether it is a directory or a file",
+                                replyToMessageId: e.Message.MessageId
+                            );
+                        }
+                    }
+                    if (e.Message.Text != "/rm" && !givinPath.EndsWith('/'))
+                    {
+                        //file
+                        AWSworker awsWorker = new AWSworker();
+                        awsWorker.bucketName = bucketName;
+                        awsWorker.bucketRegion = RegionEndpoint.USEast2;
+                        awsWorker.filePlacement = $"{AWSandLocalfolderContainer}{givinPath}";
+                        awsWorker.AWSfoldRoot = AWSandLocalfolderContainer;
+                        awsWorker.assignS3();
+                        await awsWorker.ListingObjectsAsync();
+                        if (awsWorker.lsSpit.Contains(givinPath + " "))
+                        {
+                            await awsWorker.DeleteObjectBucketAsync();
+                            await botClient.SendTextMessageAsync(
+                                chatId: e.Message.Chat,
+                                text: $"Deleting file {givinPath}",
+                                replyToMessageId: e.Message.MessageId
+                            );
+                        }
+                        else
+                        {
+                            await botClient.SendTextMessageAsync(
+                                chatId: e.Message.Chat,
+                                text: $"Could not find file {givinPath}\nMake sure you signal wether it is a file or directory"
+                            );
+                        }
+                    }
+                }
             }
 
             else if(e.Message.Type == MessageType.Document)
             {
-                if(e.Message.Caption == "/upload")
+                if(e.Message.Caption.Contains("/upload"))
                 {
+                    var match = Regex.Match(e.Message.Caption, @"/upload (?<path>.*)");
+                    string givinPath = Convert.ToString(match.Groups["path"]);
                     //s3Client = new AmazonS3Client(bucketRegion);
                     var file = await botClient.GetFileAsync(e.Message.Document.FileId);
                     //FileStream fs = new FileStream(file.FilePath, FileAc);
@@ -277,7 +378,18 @@ namespace ShittyTea
                     awsWorker.bucketName = bucketName;
                     awsWorker.bucketRegion = RegionEndpoint.USEast2;
                     awsWorker.ms = ms;
-                    awsWorker.filePlacement = $"{AWSandLocalfolderContainer}{e.Message.Document.FileName}";
+                    if (e.Message.Caption.Equals("/upload"))
+                    {
+                        awsWorker.filePlacement = $"{AWSandLocalfolderContainer}{e.Message.Document.FileName}";
+                    }
+                    if (givinPath.EndsWith('/'))
+                    {
+                        awsWorker.filePlacement = $"{AWSandLocalfolderContainer}{givinPath}{e.Message.Document.FileName}";
+                    }
+                    if (e.Message.Caption != "/upload" && !givinPath.EndsWith('/'))
+                    {
+                        awsWorker.filePlacement = $"{AWSandLocalfolderContainer}{givinPath}";
+                    }
                     awsWorker.assignS3();
                     await awsWorker.UploadFileAsync();
 

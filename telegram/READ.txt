@@ -1,0 +1,4 @@
+DONT DELETE THIS FOLDER IT IS SUPPOSE TO BE EMPTY.
+Folder is necessary for the /download feuture to work to download from AWS to local machine and send through telegram from there because unlike the upload and other feutures, download doesn't have a Stream option to pass through file data.
+Folder empties itself automaticly.
+MAKE SURE THIS FOLDER, AWS S3 FOLDER BEING USED AS CONTAINER FOR STORAGE, AND "AWSandLocalContainFolder" VARIABLE VALUE IN config.json ARE ALL THE SAME.
