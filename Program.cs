@@ -360,39 +360,46 @@ namespace ShittyTea
 
             else if(e.Message.Type == MessageType.Document)
             {
-                if(e.Message.Caption.Contains("/upload"))
+                try //I don't know why but this has to be on outside of if statement.
                 {
-                    var match = Regex.Match(e.Message.Caption, @"/upload (?<path>.*)");
-                    string givinPath = Convert.ToString(match.Groups["path"]);
-                    //s3Client = new AmazonS3Client(bucketRegion);
-                    var file = await botClient.GetFileAsync(e.Message.Document.FileId);
-                    //FileStream fs = new FileStream(file.FilePath, FileAc);
-                    //await botClient.DownloadFileAsync(file.FilePath, fs);
-                    //fs.Close();
-                    //fs.Dispose();
-                    MemoryStream ms = new MemoryStream();
-                    await botClient.DownloadFileAsync(file.FilePath, ms);
-                    //await UploadFileAsync(ms, e.Message.Document.FileName);
-
-                    AWSworker awsWorker = new AWSworker();
-                    awsWorker.bucketName = bucketName;
-                    awsWorker.bucketRegion = RegionEndpoint.USEast2;
-                    awsWorker.ms = ms;
-                    if (e.Message.Caption.Equals("/upload"))
+                    if(e.Message.Caption.Contains("/upload"))
                     {
-                        awsWorker.filePlacement = $"{AWSandLocalfolderContainer}{e.Message.Document.FileName}";
+                        var match = Regex.Match(e.Message.Caption, @"/upload (?<path>.*)");
+                        string givinPath = Convert.ToString(match.Groups["path"]);
+                        //s3Client = new AmazonS3Client(bucketRegion);
+                        var file = await botClient.GetFileAsync(e.Message.Document.FileId);
+                        //FileStream fs = new FileStream(file.FilePath, FileAc);
+                        //await botClient.DownloadFileAsync(file.FilePath, fs);
+                        //fs.Close();
+                        //fs.Dispose();
+                        MemoryStream ms = new MemoryStream();
+                        await botClient.DownloadFileAsync(file.FilePath, ms);
+                        //await UploadFileAsync(ms, e.Message.Document.FileName);
+                        AWSworker awsWorker = new AWSworker();
+                        awsWorker.bucketName = bucketName;
+                        awsWorker.bucketRegion = RegionEndpoint.USEast2;
+                        awsWorker.ms = ms;
+                        if (e.Message.Caption.Equals("/upload"))
+                        {
+                            awsWorker.filePlacement = $"{AWSandLocalfolderContainer}{e.Message.Document.FileName}";
+                        }
+                        if (givinPath.EndsWith('/'))
+                        {
+                            awsWorker.filePlacement = $"{AWSandLocalfolderContainer}{givinPath}{e.Message.Document.FileName}";
+                        }
+                        if (e.Message.Caption != "/upload" && !givinPath.EndsWith('/'))
+                        {
+                            awsWorker.filePlacement = $"{AWSandLocalfolderContainer}{givinPath}";
+                        }
+                        awsWorker.assignS3();
+                        await awsWorker.UploadFileAsync();
+                        ms.Close();
+                        await ms.DisposeAsync();
                     }
-                    if (givinPath.EndsWith('/'))
-                    {
-                        awsWorker.filePlacement = $"{AWSandLocalfolderContainer}{givinPath}{e.Message.Document.FileName}";
-                    }
-                    if (e.Message.Caption != "/upload" && !givinPath.EndsWith('/'))
-                    {
-                        awsWorker.filePlacement = $"{AWSandLocalfolderContainer}{givinPath}";
-                    }
-                    awsWorker.assignS3();
-                    await awsWorker.UploadFileAsync();
-
+                }
+                catch (Exception why)
+                {
+                    Console.WriteLine(why);
                 }
             }
         }
