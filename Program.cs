@@ -234,6 +234,10 @@ namespace ShittyTea
                     await botClient.DownloadFileAsync(file.FilePath, fs);
                 }
                 */
+                else if (e.Message.Text.Contains("/newsUp", StringComparison.OrdinalIgnoreCase))
+                {
+                    await botClient.SendTextMessageAsync(e.Message.Chat, $"{Top5Newsupcoming()}");
+                }
                 else if (e.Message.Text.Contains("/aws"))
                 {
                     await botClient.SendTextMessageAsync(e.Message.Chat, "/aws -- Help Menu.\n/download <filePath> -- Sends file from AWS through telegram.\n/ls -- List all folders and files\n/ls <directory> -- List all files and folders within directory\n/rm directoryName/directoryToDelete/ -- Removes directory if no files inside though will delete empty folders regardless without specifying, risky command\n/rm directoryName/fileName.txt -- Removes file in root location or directory specified\n/rm command distinguishes files and folders with / and no / at end\n" +
@@ -437,6 +441,26 @@ namespace ShittyTea
                 if (count >= 5)
                 {
                     break;
+                }
+            }
+            return Convert.ToString(scraped.Replace("\n\n\n", "\n"));
+        }
+        private static string Top5Newsupcoming()
+        {
+            int count = 0;
+            string scraped = "";
+            HtmlWeb web = new HtmlWeb();
+            HtmlDocument doc = web.Load("https://weathrman.ai/");
+            for(int i = 1; i < 3; ++i)
+            {
+                foreach (var item in doc.DocumentNode.SelectNodes("/html/body/div/div[2]/table/tbody/tr["+i+"]"))
+                {
+                    scraped += item.InnerText;
+                    count++;
+                    if(count >= 5)
+                    {
+                        break;
+                    }
                 }
             }
             return Convert.ToString(scraped.Replace("\n\n\n", "\n"));
