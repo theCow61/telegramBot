@@ -26,19 +26,19 @@ namespace ShittyTea
     static class Program
     {
         private static ITelegramBotClient botClient;
-        private static string pathToProj;
-        private static string pathToWL;
-        private static string pathToStat;
-        private static string pathToExp;
-        private static string[] fileArray;
+        // private static string pathToProj;
+        // private static string pathToWL;
+        // private static string pathToStat;
+        // private static string pathToExp;
         private static bool verb = true;
 
         //aws
-
-        private static string bucketName;
-        private static string AWSandLocalfolderContainer;
-        //private static readonly RegionEndpoint bucketRegion = RegionEndpoint.USEast2; GOTO WHERE awsWorker.bucketRegion is set to change
-        //private static AWSCredentials credentials;
+        // Vart vart = new Vart(); //use this once u refactor code into chunky instances
+        private static string[] fileArray = System.IO.File.ReadAllLines(VartStc.pathToWL);
+        // private static string bucketName;
+        // private static string AWSandLocalfolderContainer;
+        ////private static readonly RegionEndpoint bucketRegion = RegionEndpoint.USEast2; GOTO WHERE awsWorker.bucketRegion is set to change
+        ////private static AWSCredentials credentials;
 
         //
         static async void Bot_OnMessage(object sender, MessageEventArgs e)
@@ -89,7 +89,7 @@ namespace ShittyTea
 			try
 			{
 				string pathModule = splitText[1].Replace("../", "");
-				using (FileStream fs = System.IO.File.OpenRead($@"{pathToExp}{pathModule}"))
+				using (FileStream fs = System.IO.File.OpenRead($@"{VartStc.pathToExp}{pathModule}"))
 				{
 					InputOnlineFile inputOnlineFile = new InputOnlineFile(fs, "UrExploit");
 					await botClient.SendDocumentAsync(e.Message.Chat, inputOnlineFile);
@@ -188,7 +188,7 @@ namespace ShittyTea
                     await botClient.SendTextMessageAsync(e.Message.Chat, "/IdoNotKnowTheSyntaxOfThisBot -- Help Menu\n" +
                         "/balance -- View how many cow credits you have\n/creditsFull -- View everyones available credits\n/transfer <#ofCredits> <username> -- Give someone credits(no spaces)\n/ctfUp -- Upcoming ctf's according to ctftime" + 
                         "\n/verbOff -- Turns off getting told when you are given credit for saying something\n/verbOn -- Turns on getting told when you are given credit.\n/searchsploit <term> -- Gives exploits back (if a lot of exploits it wont spit any).\n/searchsploit -m <path> -- Sends exploit over telegram.\nA lot of commands are possition sensitive like the path has to be one space after the m but transfer needs to have no space inbetween \"to\" and username so make sure you use commands exactly possitioned like in this menu." + 
-                        "\n/IamGayIfIuseThis \"(Message)\" (# of spam)\nUpload a single document/file with the caption of /upload for it to upload to AWS\n/download <file name> -- Have telegram send you file from AWS");
+                        "\n/IamGayIfIuseThis \"(Message)\" (# of spam)\n/newsUp -- GET NEWSS!!!");
                 }
                 else if(e.Message.Text.Contains("/IamGayIfIuseThis", StringComparison.OrdinalIgnoreCase))
                 {
@@ -250,13 +250,13 @@ namespace ShittyTea
                         var match = Regex.Match(e.Message.Text, @"/download (?<path>.*)");
                         string givinPath = Convert.ToString(match.Groups["path"]);
                         AWSworker awsWorker = new AWSworker();
-                        awsWorker.bucketName = bucketName;
-                        awsWorker.bucketRegion = RegionEndpoint.USEast2;
-                        awsWorker.filePlacement = $"{AWSandLocalfolderContainer}{givinPath}";
+                        awsWorker.bucketName = VartStc.bucketName;
+                        awsWorker.bucketRegion = VartStc.bucketRegion;
+                        awsWorker.filePlacement = $"{VartStc.AWSandLocalfolderContainer}{givinPath}";
                         awsWorker.assignS3();
                         await awsWorker.DownloadFileAsync();
 
-                        using (FileStream fs = System.IO.File.OpenRead($@"{AWSandLocalfolderContainer}{givinPath}"))
+                        using (FileStream fs = System.IO.File.OpenRead($@"{VartStc.AWSandLocalfolderContainer}{givinPath}"))
                         {
                             InputOnlineFile inputOnlineFile = new InputOnlineFile(fs, givinPath);
                             //await botClient.SendDocumentAsync(e.Message.Chat, inputOnlineFile);
@@ -266,7 +266,7 @@ namespace ShittyTea
                                 replyToMessageId: e.Message.MessageId
                             );
                             fs.Close();
-                            System.IO.File.Delete($@"{AWSandLocalfolderContainer}{givinPath}");
+                            System.IO.File.Delete($@"{VartStc.AWSandLocalfolderContainer}{givinPath}");
                         }
                         
                     }
@@ -280,16 +280,16 @@ namespace ShittyTea
                     var match = Regex.Match(e.Message.Text, @"/ls (?<path>.*)");
                     string givinPath = Convert.ToString(match.Groups["path"]);
                     AWSworker awsWorker = new AWSworker();
-                    awsWorker.bucketName = bucketName;
-                    awsWorker.bucketRegion = RegionEndpoint.USEast2;
-                    awsWorker.AWSfoldRoot = AWSandLocalfolderContainer;
+                    awsWorker.bucketName = VartStc.bucketName;
+                    awsWorker.bucketRegion = VartStc.bucketRegion;
+                    awsWorker.AWSfoldRoot = VartStc.AWSandLocalfolderContainer;
                     if(givinPath != null)
                     {
-                        awsWorker.filePlacement = $"{AWSandLocalfolderContainer}{givinPath}";
+                        awsWorker.filePlacement = $"{VartStc.AWSandLocalfolderContainer}{givinPath}";
                     }
                     else
                     {
-                        awsWorker.filePlacement = $"{AWSandLocalfolderContainer}";
+                        awsWorker.filePlacement = $"{VartStc.AWSandLocalfolderContainer}";
                     }
                     awsWorker.assignS3();
                     await awsWorker.ListingObjectsAsync();
@@ -308,10 +308,10 @@ namespace ShittyTea
                     {
                         //folder
                         AWSworker awsWorker = new AWSworker();
-                        awsWorker.bucketName = bucketName;
-                        awsWorker.bucketRegion = RegionEndpoint.USEast2;
-                        awsWorker.filePlacement = $"{AWSandLocalfolderContainer}{givinPath}";
-                        awsWorker.AWSfoldRoot = AWSandLocalfolderContainer;
+                        awsWorker.bucketName = VartStc.bucketName;
+                        awsWorker.bucketRegion = VartStc.bucketRegion;
+                        awsWorker.filePlacement = $"{VartStc.AWSandLocalfolderContainer}{givinPath}";
+                        awsWorker.AWSfoldRoot = VartStc.AWSandLocalfolderContainer;
                         awsWorker.assignS3();
                         await awsWorker.ListingObjectsAsync();
                         if (awsWorker.lsSpit.Contains(givinPath))
@@ -336,10 +336,10 @@ namespace ShittyTea
                     {
                         //file
                         AWSworker awsWorker = new AWSworker();
-                        awsWorker.bucketName = bucketName;
-                        awsWorker.bucketRegion = RegionEndpoint.USEast2;
-                        awsWorker.filePlacement = $"{AWSandLocalfolderContainer}{givinPath}";
-                        awsWorker.AWSfoldRoot = AWSandLocalfolderContainer;
+                        awsWorker.bucketName = VartStc.bucketName;
+                        awsWorker.bucketRegion = VartStc.bucketRegion;
+                        awsWorker.filePlacement = $"{VartStc.AWSandLocalfolderContainer}{givinPath}";
+                        awsWorker.AWSfoldRoot = VartStc.AWSandLocalfolderContainer;
                         awsWorker.assignS3();
                         await awsWorker.ListingObjectsAsync();
                         if (awsWorker.lsSpit.Contains(givinPath + " "))
@@ -380,20 +380,20 @@ namespace ShittyTea
                         await botClient.DownloadFileAsync(file.FilePath, ms);
                         //await UploadFileAsync(ms, e.Message.Document.FileName);
                         AWSworker awsWorker = new AWSworker();
-                        awsWorker.bucketName = bucketName;
-                        awsWorker.bucketRegion = RegionEndpoint.USEast2;
+                        awsWorker.bucketName = VartStc.bucketName;
+                        awsWorker.bucketRegion = VartStc.bucketRegion;
                         awsWorker.ms = ms;
                         if (e.Message.Caption.Equals("/upload"))
                         {
-                            awsWorker.filePlacement = $"{AWSandLocalfolderContainer}{e.Message.Document.FileName}";
+                            awsWorker.filePlacement = $"{VartStc.AWSandLocalfolderContainer}{e.Message.Document.FileName}";
                         }
                         if (givinPath.EndsWith('/'))
                         {
-                            awsWorker.filePlacement = $"{AWSandLocalfolderContainer}{givinPath}{e.Message.Document.FileName}";
+                            awsWorker.filePlacement = $"{VartStc.AWSandLocalfolderContainer}{givinPath}{e.Message.Document.FileName}";
                         }
                         if (e.Message.Caption != "/upload" && !givinPath.EndsWith('/'))
                         {
-                            awsWorker.filePlacement = $"{AWSandLocalfolderContainer}{givinPath}";
+                            awsWorker.filePlacement = $"{VartStc.AWSandLocalfolderContainer}{givinPath}";
                         }
                         awsWorker.assignS3();
                         await awsWorker.UploadFileAsync();
@@ -468,7 +468,7 @@ namespace ShittyTea
         private static string Transfer(string fromUsername, string amount, string toUsername)
         {
             Console.WriteLine(amount);
-            string json = System.IO.File.ReadAllText(pathToStat);
+            string json = System.IO.File.ReadAllText(VartStc.pathToStat);
             dynamic jsonObj = JsonConvert.DeserializeObject(json);
             if (jsonObj["Credits"][0][fromUsername] == null || jsonObj["Credits"][0][fromUsername] == 0)
             {
@@ -506,7 +506,7 @@ namespace ShittyTea
                 jsonObj["Credits"][0][fromUsername] = fromBalanceNewTrans;
                 jsonObj["Credits"][0][toUsername] = recBalanceNewTrans;
                 string output = JsonConvert.SerializeObject(jsonObj, Newtonsoft.Json.Formatting.Indented);
-                System.IO.File.WriteAllText(pathToStat, output);
+                System.IO.File.WriteAllText(VartStc.pathToStat, output);
                 return $"{fromUsername} sent {realAmount} credits to {toUsername}";
             }
 
@@ -514,7 +514,7 @@ namespace ShittyTea
         }
         private static string ReadStats(string username, string firstName, string mode)
         {
-            string json = System.IO.File.ReadAllText(pathToStat);
+            string json = System.IO.File.ReadAllText(VartStc.pathToStat);
             dynamic jsonObj = JsonConvert.DeserializeObject(json);
             if (mode.Equals("balance"))
             {
@@ -552,7 +552,7 @@ namespace ShittyTea
         }
         private static void Stats(string word, string username, int credits)
         {
-            string json = System.IO.File.ReadAllText(pathToStat);
+            string json = System.IO.File.ReadAllText(VartStc.pathToStat);
             dynamic jsonObj = JsonConvert.DeserializeObject(json);
             if (jsonObj["Credits"][0][username] != null)
             {
@@ -575,10 +575,10 @@ namespace ShittyTea
 
 
             string output = JsonConvert.SerializeObject(jsonObj, Newtonsoft.Json.Formatting.Indented);
-            System.IO.File.WriteAllText(pathToStat, output);
+            System.IO.File.WriteAllText(VartStc.pathToStat, output);
         }
 
-        private static void setConfigOps()
+        /*private static void setConfigOps()
         {
 
             string json = System.IO.File.ReadAllText("config.json");
@@ -593,10 +593,11 @@ namespace ShittyTea
             bucketName = jsonObj["Settings"]["AWSbucketName"];
             AWSandLocalfolderContainer = jsonObj["Settings"]["AWSandLocalContainFolder"];
             botClient = new TelegramBotClient(token);
-        }
+        }*/
         static void Main(string[] args)
         {
-            setConfigOps();
+            // setConfigOps();
+            botClient = new TelegramBotClient(VartStc.token);
             var me = botClient.GetMeAsync().Result;
             Console.WriteLine($"Hey fags, I am {me.Id} but u can call me {me.FirstName}.");
             botClient.OnMessage += Bot_OnMessage;
