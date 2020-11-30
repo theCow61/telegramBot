@@ -105,7 +105,10 @@ namespace ShittyTea
 			try
 			{
 				//string output = $"searchsploit \"{splitText[1]}\"".Bash();
-				await botClient.SendTextMessageAsync(e.Message.Chat, $"{$"searchsploit \"{splitText[1]}\"".Bash()}");
+				BashOp bashOp = new BashOp();
+                bashOp.cmd = $"searchsploit \"{splitText[1]}\"";
+                await botClient.SendTextMessageAsync(e.Message.Chat, $"{bashOp.Bash()}");
+				// await botClient.SendTextMessageAsync(e.Message.Chat, $"{$"searchsploit \"{splitText[1]}\"".Bash()}");
 			} catch 
 			{
 
@@ -176,7 +179,8 @@ namespace ShittyTea
                     }*/
                 } else if (e.Message.Text.Contains("/ctfUp", StringComparison.OrdinalIgnoreCase))
                 {
-                    await botClient.SendTextMessageAsync(e.Message.Chat, $"{CTFupcoming()}");
+                    WebScrape webScrape = new WebScrape();
+                    await botClient.SendTextMessageAsync(e.Message.Chat, $"{webScrape.CTFupcoming()}");
                 }
                 else if (e.Message.Text.Contains("/help", StringComparison.OrdinalIgnoreCase))
                 {
@@ -236,7 +240,8 @@ namespace ShittyTea
                 */
                 else if (e.Message.Text.Contains("/newsUp", StringComparison.OrdinalIgnoreCase))
                 {
-                    await botClient.SendTextMessageAsync(e.Message.Chat, $"{Top5Newsupcoming()}");
+                    WebScrape webScrape = new WebScrape();
+                    await botClient.SendTextMessageAsync(e.Message.Chat, $"{webScrape.Top5Newsupcoming()}");
                 }
                 else if (e.Message.Text.Contains("/aws"))
                 {
@@ -408,63 +413,63 @@ namespace ShittyTea
             }
         }
 
-	private static string Bash(this string cmd)
-	{
-		string escapedArgs = cmd.Replace("\"", "\\\"");
-		Process process = new Process()
-		{
-			StartInfo = new ProcessStartInfo
-			{
-				FileName = "/bin/bash",
-				Arguments = $"-c \"{escapedArgs}\"",
-				RedirectStandardOutput = true,
-				UseShellExecute = false,
-				CreateNoWindow = true,
-			}
-		};
-		process.Start();
-		string result = process.StandardOutput.ReadToEnd();
-		string refResult = result.Replace("-", "");
-		process.WaitForExit();
-		return refResult;
-	}
-        private static string CTFupcoming()
-        {
-            int count = 0;
-            string scraped = "";
-            HtmlWeb web = new HtmlWeb();
-            HtmlDocument doc = web.Load("https://ctftime.org/event/list/upcoming");
-            foreach (var item in doc.DocumentNode.SelectNodes("//table[@class='table table-striped']//tr"))
-            {
-                scraped += item.InnerText;
-                count++;
-                if (count >= 5)
-                {
-                    break;
-                }
-            }
-            return Convert.ToString(scraped.Replace("\n\n\n", "\n"));
-        }
-        private static string Top5Newsupcoming()
-        {
-            int count = 0;
-            string scraped = "";
-            HtmlWeb web = new HtmlWeb();
-            HtmlDocument doc = web.Load("https://weathrman.ai/");
-            for(int i = 1; i < 3; ++i)
-            {
-                foreach (var item in doc.DocumentNode.SelectNodes("/html/body/div/div[2]/table/tbody/tr["+i+"]"))
-                {
-                    scraped += item.InnerText;
-                    count++;
-                    if(count >= 5)
-                    {
-                        break;
-                    }
-                }
-            }
-            return Convert.ToString(scraped.Replace("\n\n\n", "\n"));
-        }
+	// private static string Bash(this string cmd)
+	// {
+		// string escapedArgs = cmd.Replace("\"", "\\\"");
+		// Process process = new Process()
+		// {
+			// StartInfo = new ProcessStartInfo
+			// {
+				// FileName = "/bin/bash",
+				// Arguments = $"-c \"{escapedArgs}\"",
+				// RedirectStandardOutput = true,
+				// UseShellExecute = false,
+				// CreateNoWindow = true,
+			// }
+		// };
+		// process.Start();
+        // string result = process.StandardOutput.ReadToEnd();
+		// string refResult = result.Replace("-", "");
+		// process.WaitForExit();
+		// return refResult;
+	// }
+        // private static string CTFupcoming()
+        // {
+        //     int count = 0;
+        //     string scraped = "";
+        //     HtmlWeb web = new HtmlWeb();
+        //     HtmlDocument doc = web.Load("https://ctftime.org/event/list/upcoming");
+        //     foreach (var item in doc.DocumentNode.SelectNodes("//table[@class='table table-striped']//tr"))
+        //     {
+        //         scraped += item.InnerText;
+        //         count++;
+        //         if (count >= 5)
+        //         {
+        //             break;
+        //         }
+        //     }
+        //     return Convert.ToString(scraped.Replace("\n\n\n", "\n"));
+        // }
+        // private static string Top5Newsupcoming()
+        // {
+        //     int count = 0;
+        //     string scraped = "";
+        //     HtmlWeb web = new HtmlWeb();
+        //     HtmlDocument doc = web.Load("https://weathrman.ai/");
+        //     for(int i = 1; i < 3; ++i)
+        //     {
+        //         foreach (var item in doc.DocumentNode.SelectNodes("/html/body/div/div[2]/table/tbody/tr["+i+"]"))
+        //         {
+        //             scraped += item.InnerText;
+        //             count++;
+        //             if(count >= 5)
+        //             {
+        //                 break;
+        //             }
+        //         }
+        //     }
+        //     return Convert.ToString(scraped.Replace("\n\n\n", "\n"));
+        // }
         private static string Transfer(string fromUsername, string amount, string toUsername)
         {
             Console.WriteLine(amount);
