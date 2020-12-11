@@ -6,20 +6,12 @@ using Telegram.Bot.Args;
 using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
-using Microsoft.VisualBasic;
 using System.Diagnostics;
 using Telegram.Bot.Types;
-using HtmlAgilityPack;
 using System.Threading.Tasks;
 using Telegram.Bot.Types.InputFiles;
 using System.Text.RegularExpressions;
 using Telegram.Bot.Types.Enums;
-using System.Text;
-using Amazon;
-using Amazon.S3;
-using Amazon.S3.Transfer;
-using Amazon.Runtime;
-using Amazon.Runtime.CredentialManagement;
 //MAKE IT OBJECT INSTANCE, I HAVE TO DECLARE GLOBALLY EACH VARIABLE FROM CONFIG.JSON TO USE IT WHICH IS INNIFIECIENT
 namespace ShittyTea
 {
@@ -40,7 +32,6 @@ namespace ShittyTea
         ////private static readonly RegionEndpoint bucketRegion = RegionEndpoint.USEast2; GOTO WHERE awsWorker.bucketRegion is set to change
         ////private static AWSCredentials credentials;
 
-        //
         static async void Bot_OnMessage(object sender, MessageEventArgs e)
         {
             if (e.Message.Text != null && e.Message.From.Username != null)
@@ -130,10 +121,12 @@ namespace ShittyTea
                     }
                     try
                     {
-                        await botClient.SendTextMessageAsync(e.Message.Chat, $"{Transfer(e.Message.From.Username, amount, toUserClean)}");
-                    } catch
+                        CowCurrent cowTrans = new CowCurrent(fromUser: e.Message.Chat.Username, toUser: toUserClean, amm: amount);
+                        var trans = await botClient.SendTextMessageAsync(e.Message.Chat, $"{await cowTrans.Transfer()}");
+                    } catch (Exception lulz)
                     {
-			await botClient.SendTextMessageAsync(e.Message.Chat, "oops");
+			            await botClient.SendTextMessageAsync(e.Message.Chat, "oops");
+                        Console.WriteLine(lulz);
                     }
                     /*
                     string sendToUser = e.Message.Text;
@@ -241,7 +234,7 @@ namespace ShittyTea
                 else if (e.Message.Text.Contains("/newsUp", StringComparison.OrdinalIgnoreCase))
                 {
                     WebScrape webScrape = new WebScrape();
-                    await botClient.SendTextMessageAsync(e.Message.Chat, $"{webScrape.Top5Newsupcoming()}");
+                    var me = await botClient.SendTextMessageAsync(e.Message.Chat, $"{await webScrape.Top5NewsupcomingAsync()}");
                 }
                 else if (e.Message.Text.Contains("/aws"))
                 {

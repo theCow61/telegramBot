@@ -1,5 +1,7 @@
 using HtmlAgilityPack;
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace ShittyTea
 {
@@ -26,11 +28,11 @@ namespace ShittyTea
             }
             return Convert.ToString(scraped.Replace("\n\n\n", "\n"));
         }
-        public string Top5Newsupcoming()
+        public async Task<string> Top5NewsupcomingAsync()
         {
             int count = 0;
             string scraped = "";
-            doc = web.Load(NewsApiUrl);
+            doc = await web.LoadFromWebAsync(NewsApiUrl);
             for(int i = 1; i < 3; ++i)
             {
                 foreach (var item in doc.DocumentNode.SelectNodes("/html/body/div/div[2]/table/tbody/tr["+i+"]"))
@@ -43,6 +45,7 @@ namespace ShittyTea
                     }
                 }
             }
+            // Thread.Sleep(5000);
             return Convert.ToString(scraped.Replace("\n\n\n", "\n"));
         }
     }

@@ -1,0 +1,21 @@
+#+TITLE:  Tele
+
+* Refactor code
+** Make code split into more classes and organised
++ Make code more organized by grouping together like methods that do similar thing or serve similar purposes.
+  - Make class for currency related.
++ Try using instance classes if possible.
++ Async the code.
+* Feutures
+** New to add
++ Add exif data analyis.
++ MAKE VERBOFF TURN OFF NOTIFCATIONS FOR ALL BOT CHATS TOO.
++ Add chat authentication to prevent non allowed use of AWS S3.
+  - Json or MySql for authentication depending on route of bot.
+** Modify already added
++ Telegram bot api limits download and upload which hinders S3 capability, figure out how to bypass limit maybe using telegram's "file_id".
+  - Bypass download size limit from telegram to api but make sure it goes to memory stream or file stream.
+  - Bypass upload size limit from telegram to api but make sure it goes to memory stream or file stream.
+* Git
++ Either branch of factor or create another branch after merging factor into master.
++ Create .gitignore for files like this.
