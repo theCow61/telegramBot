@@ -17,6 +17,7 @@ namespace ShittyTea
 {
     static class Program
     {
+        private static int frop = 0;
         private static ITelegramBotClient botClient;
         // private static string pathToProj;
         // private static string pathToWL;
@@ -34,6 +35,15 @@ namespace ShittyTea
 
         static async void Bot_OnMessage(object sender, MessageEventArgs e)
         {
+            if (frop < 1)
+            {
+                var lulzz = await botClient.SendTextMessageAsync(
+                    chatId: e.Message.Chat, // Change this to do all chats this bot is joined into later
+                    disableNotification: true,
+                    text: "New update: /verboff will now not only make bot shut up when you saw shit on wordlist but also disable notifications."
+                );
+                frop++;
+            }
             if (e.Message.Text != null && e.Message.From.Username != null)
             {
                 if(e.Message.Text.Contains("/verbOn", StringComparison.OrdinalIgnoreCase))
@@ -57,7 +67,7 @@ namespace ShittyTea
                     {
                         if (verb == true)
                         {
-                            await botClient.SendTextMessageAsync(e.Message.Chat, $"{e.Message.From.FirstName}, congrats u get a 1 cow credit.");
+                            await botClient.SendTextMessageAsync(e.Message.Chat, $"{e.Message.From.FirstName}, congrats u get a 1 cow credit.", disableNotification: !verb);
                         }
                         Stats(s, e.Message.From.Username, 1);
                         break;
@@ -70,10 +80,10 @@ namespace ShittyTea
                 }
                 if (e.Message.Text.Contains("/balance", StringComparison.OrdinalIgnoreCase))
                 {
-                    await botClient.SendTextMessageAsync(e.Message.Chat, $"{ReadStats(e.Message.From.Username, e.Message.From.FirstName, "balance")}");
+                    await botClient.SendTextMessageAsync(e.Message.Chat, $"{ReadStats(e.Message.From.Username, e.Message.From.FirstName, "balance")}", disableNotification: !verb);
                 } else if (e.Message.Text.Contains("/creditsFull", StringComparison.OrdinalIgnoreCase))
                 {
-                    await botClient.SendTextMessageAsync(e.Message.Chat, $"{ReadStats(e.Message.From.Username, e.Message.From.FirstName, "creditsFull")}");
+                    await botClient.SendTextMessageAsync(e.Message.Chat, $"{ReadStats(e.Message.From.Username, e.Message.From.FirstName, "creditsFull")}", disableNotification: !verb);
                 } else if (e.Message.Text.Contains("/searchsploit -m", StringComparison.OrdinalIgnoreCase))
 		    {
 			string[] splitText = e.Message.Text.Split("searchsploit -m ");
@@ -88,7 +98,7 @@ namespace ShittyTea
 				//await botClient.SendDocumentAsync(e.Message.Chat, $@"/opt/exploitdb/exploits/{pathModule}");
 			} catch
 			{
-				await botClient.SendTextMessageAsync(e.Message.Chat, "lol no");
+				await botClient.SendTextMessageAsync(e.Message.Chat, "lol no", disableNotification: !verb);
 			}
 		} else if (e.Message.Text.Contains("/searchsploit", StringComparison.OrdinalIgnoreCase))
 		{
@@ -98,7 +108,7 @@ namespace ShittyTea
 				//string output = $"searchsploit \"{splitText[1]}\"".Bash();
 				BashOp bashOp = new BashOp();
                 bashOp.cmd = $"searchsploit \"{splitText[1]}\"";
-                await botClient.SendTextMessageAsync(e.Message.Chat, $"{bashOp.Bash()}");
+                await botClient.SendTextMessageAsync(e.Message.Chat, $"{bashOp.Bash()}", disableNotification: !verb);
 				// await botClient.SendTextMessageAsync(e.Message.Chat, $"{$"searchsploit \"{splitText[1]}\"".Bash()}");
 			} catch 
 			{
@@ -122,10 +132,10 @@ namespace ShittyTea
                     try
                     {
                         CowCurrent cowTrans = new CowCurrent(fromUser: e.Message.Chat.Username, toUser: toUserClean, amm: amount);
-                        var trans = await botClient.SendTextMessageAsync(e.Message.Chat, $"{await cowTrans.Transfer()}");
+                        var trans = await botClient.SendTextMessageAsync(e.Message.Chat, $"{await cowTrans.Transfer()}", disableNotification: !verb);
                     } catch (Exception lulz)
                     {
-			            await botClient.SendTextMessageAsync(e.Message.Chat, "oops");
+			            await botClient.SendTextMessageAsync(e.Message.Chat, "oops", disableNotification: !verb);
                         Console.WriteLine(lulz);
                     }
                     /*
@@ -173,19 +183,19 @@ namespace ShittyTea
                 } else if (e.Message.Text.Contains("/ctfUp", StringComparison.OrdinalIgnoreCase))
                 {
                     WebScrape webScrape = new WebScrape();
-                    await botClient.SendTextMessageAsync(e.Message.Chat, $"{webScrape.CTFupcoming()}");
+                    await botClient.SendTextMessageAsync(e.Message.Chat, $"{webScrape.CTFupcoming()}", disableNotification: !verb);
                 }
                 else if (e.Message.Text.Contains("/help", StringComparison.OrdinalIgnoreCase))
                 {
-                    await botClient.SendTextMessageAsync(e.Message.Chat, "To get full list of commands do /IdoNotKnowTheSyntaxOfThisBotAndMyLifeIsFullOfShameAndSorrow");
-                    await botClient.SendTextMessageAsync(e.Message.Chat, "To get list of AWS commands do /aws");
+                    await botClient.SendTextMessageAsync(e.Message.Chat, "To get full list of commands do /IdoNotKnowTheSyntaxOfThisBotAndMyLifeIsFullOfShameAndSorrow", disableNotification: !verb);
+                    await botClient.SendTextMessageAsync(e.Message.Chat, "To get list of AWS commands do /aws", disableNotification: !verb);
                 }
                 else if (e.Message.Text.Contains("/IdoNotKnowTheSyntaxOfThisBot", StringComparison.OrdinalIgnoreCase))
                 {
                     await botClient.SendTextMessageAsync(e.Message.Chat, "/IdoNotKnowTheSyntaxOfThisBot -- Help Menu\n" +
                         "/balance -- View how many cow credits you have\n/creditsFull -- View everyones available credits\n/transfer <#ofCredits> <username> -- Give someone credits(no spaces)\n/ctfUp -- Upcoming ctf's according to ctftime" + 
                         "\n/verbOff -- Turns off getting told when you are given credit for saying something\n/verbOn -- Turns on getting told when you are given credit.\n/searchsploit <term> -- Gives exploits back (if a lot of exploits it wont spit any).\n/searchsploit -m <path> -- Sends exploit over telegram.\nA lot of commands are possition sensitive like the path has to be one space after the m but transfer needs to have no space inbetween \"to\" and username so make sure you use commands exactly possitioned like in this menu." + 
-                        "\n/IamGayIfIuseThis \"(Message)\" (# of spam)\n/newsUp -- GET NEWSS!!!");
+                        "\n/IamGayIfIuseThis \"(Message)\" (# of spam)\n/newsUp -- GET NEWSS!!!", disableNotification: !verb);
                 }
                 else if(e.Message.Text.Contains("/IamGayIfIuseThis", StringComparison.OrdinalIgnoreCase))
                 {
@@ -202,19 +212,19 @@ namespace ShittyTea
                         Console.WriteLine(count);
                         if (count <= 0)
                         {
-                            await botClient.SendTextMessageAsync(e.Message.Chat, "format is /iamgayifiusethis \"(message)\" (amount spammed)");
+                            await botClient.SendTextMessageAsync(e.Message.Chat, "format is /iamgayifiusethis \"(message)\" (amount spammed)", disableNotification: !verb);
                         }
                         else 
                         {
                             for(int i = 1; i <= count; i++)
                             {
-                                await botClient.SendTextMessageAsync(e.Message.Chat, $"{messageToSpam}");
+                                await botClient.SendTextMessageAsync(e.Message.Chat, $"{messageToSpam}", disableNotification: !verb);
                             }
                         }
                     }
                     catch
                     {
-                        await botClient.SendTextMessageAsync(e.Message.Chat, "Format is /iamgayifiusethis \"(message)\" (amount to spam)");
+                        await botClient.SendTextMessageAsync(e.Message.Chat, "Format is /iamgayifiusethis \"(message)\" (amount to spam)", disableNotification: !verb);
                     }
                 }
                 /*else if(e.Message.Text.Equals("/upload"))
@@ -234,12 +244,12 @@ namespace ShittyTea
                 else if (e.Message.Text.Contains("/newsUp", StringComparison.OrdinalIgnoreCase))
                 {
                     WebScrape webScrape = new WebScrape();
-                    var me = await botClient.SendTextMessageAsync(e.Message.Chat, $"{await webScrape.Top5NewsupcomingAsync()}");
+                    var me = await botClient.SendTextMessageAsync(e.Message.Chat, $"{await webScrape.Top5NewsupcomingAsync()}", disableNotification: !verb);
                 }
                 else if (e.Message.Text.Contains("/aws"))
                 {
                     await botClient.SendTextMessageAsync(e.Message.Chat, "/aws -- Help Menu.\n/download <filePath> -- Sends file from AWS through telegram.\n/ls -- List all folders and files\n/ls <directory> -- List all files and folders within directory\n/rm directoryName/directoryToDelete/ -- Removes directory if no files inside though will delete empty folders regardless without specifying, risky command\n/rm directoryName/fileName.txt -- Removes file in root location or directory specified\n/rm command distinguishes files and folders with / and no / at end\n" +
-                    "For uploading documents and files, a / at end means that file will be uploaded to that directory(Directory will be made if doesn't exist) with original filename\nNo / at end means file will be named what you gave it and will be uploaded to directory if you specified to do so in path\nCaption \"/upload directoryName/modifiedName.txt\" will upload to directory specified with modified file name\nCaption \"/upload directoryName/\" will upload to that directory with original filename\nCaption \"/upload modifiedName\" will upload to root of AWS with modified file name");
+                    "For uploading documents and files, a / at end means that file will be uploaded to that directory(Directory will be made if doesn't exist) with original filename\nNo / at end means file will be named what you gave it and will be uploaded to directory if you specified to do so in path\nCaption \"/upload directoryName/modifiedName.txt\" will upload to directory specified with modified file name\nCaption \"/upload directoryName/\" will upload to that directory with original filename\nCaption \"/upload modifiedName\" will upload to root of AWS with modified file name", disableNotification: !verb);
                 }
                 else if(e.Message.Text.Contains("/download"))
                 {
@@ -294,6 +304,7 @@ namespace ShittyTea
                     await botClient.SendTextMessageAsync(
                         chatId: e.Message.Chat,
                         text: awsWorker.lsSpit,
+                        disableNotification: !verb,
                         replyToMessageId: e.Message.MessageId
                     );
                 }
@@ -318,7 +329,8 @@ namespace ShittyTea
                             await botClient.SendTextMessageAsync(
                                 chatId: e.Message.Chat,
                                 text: $"Deleting directory {givinPath}\nWont be deleted if files exist inside.",
-                                replyToMessageId: e.Message.MessageId
+                                replyToMessageId: e.Message.MessageId,
+                                disableNotification: !verb
                             );
                         }
                         else
@@ -326,7 +338,8 @@ namespace ShittyTea
                             await botClient.SendTextMessageAsync(
                                 chatId: e.Message.Chat,
                                 text: $"Could not find directory {givinPath}\nMake sure you signal wether it is a directory or a file",
-                                replyToMessageId: e.Message.MessageId
+                                replyToMessageId: e.Message.MessageId,
+                                disableNotification: !verb
                             );
                         }
                     }
@@ -346,14 +359,16 @@ namespace ShittyTea
                             await botClient.SendTextMessageAsync(
                                 chatId: e.Message.Chat,
                                 text: $"Deleting file {givinPath}",
-                                replyToMessageId: e.Message.MessageId
+                                replyToMessageId: e.Message.MessageId,
+                                disableNotification: !verb
                             );
                         }
                         else
                         {
                             await botClient.SendTextMessageAsync(
                                 chatId: e.Message.Chat,
-                                text: $"Could not find file {givinPath}\nMake sure you signal wether it is a file or directory"
+                                text: $"Could not find file {givinPath}\nMake sure you signal wether it is a file or directory",
+                                disableNotification: !verb
                             );
                         }
                     }
