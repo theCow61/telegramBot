@@ -20,23 +20,32 @@ namespace ShittyTea
             this.amount = amm;
             string json = System.IO.File.ReadAllText(VartStc.pathToStat);
             jsonObj = JsonConvert.DeserializeObject(json);
-            if (jsonObj["Credits"][0][fromUsername] == null || jsonObj["Credits"][0][fromUsername] == 0)
-            {
-                jsonObj["Credits"][0][fromUsername] = 0;
-            }
-            if (jsonObj["Credits"][0][toUsername] == null)
-            {
-                jsonObj["Credits"][0][toUsername] = 0;
-            }
-            fromBalance = jsonObj["Credits"][0][fromUsername];
-            recBalance = jsonObj["Credits"][0][toUsername];
             try
             {
-                realAmount = Convert.ToInt32(amount);
+                if (jsonObj["Credits"][0][fromUsername] == null || jsonObj["Credits"][0][fromUsername] == 0)
+                {
+                    jsonObj["Credits"][0][fromUsername] = 0;
+                    return;
+                }
+                if (jsonObj["Credits"][0][toUsername] == null)
+                {
+                    jsonObj["Credits"][0][toUsername] = 0;
+                }
+                fromBalance = jsonObj["Credits"][0][fromUsername];
+                recBalance = jsonObj["Credits"][0][toUsername];
+                try
+                {
+                    Console.WriteLine("test4");
+                    realAmount = Convert.ToInt32(amount);
+                }
+                catch
+                {
+                    realAmount = 0;
+                }
             }
-            catch
+            catch (Exception bruh)
             {
-                realAmount = 0;
+                Console.WriteLine(bruh);
             }
         }
         public async Task<string> Transfer()
@@ -61,6 +70,7 @@ namespace ShittyTea
                 return $"{fromUsername} sent {realAmount} credits to {toUsername}";
             }
             return "";
+            
         }
     }
 }

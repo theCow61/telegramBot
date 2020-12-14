@@ -131,7 +131,7 @@ namespace ShittyTea
                     }
                     try
                     {
-                        CowCurrent cowTrans = new CowCurrent(fromUser: e.Message.Chat.Username, toUser: toUserClean, amm: amount);
+                        CowCurrent cowTrans = new CowCurrent(fromUser: e.Message.From.Username, toUser: toUserClean, amm: amount);
                         var trans = await botClient.SendTextMessageAsync(e.Message.Chat, $"{await cowTrans.Transfer()}", disableNotification: !verb);
                     } catch (Exception lulz)
                     {
