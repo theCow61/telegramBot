@@ -4,7 +4,7 @@
         "PathToExploitdb": "/usr/share/exploitdb/exploits/",
         "Wordlist": "wl.txt",
         "Stat": "Stat.json",
-        "Token": "1255929985:AAFZVSUX-nxjTXGb15RFA-mXt0GiPam7sWs",
+        "Token": "",
         "AWSbucketName": "mycowbucket",
         "AWSandLocalContainFolder": "telegram/"
     }
