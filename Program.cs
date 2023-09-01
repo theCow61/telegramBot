@@ -21,7 +21,7 @@ using Amazon.S3.Transfer;
 using Amazon.Runtime;
 using Amazon.Runtime.CredentialManagement;
 //MAKE IT OBJECT INSTANCE, I HAVE TO DECLARE GLOBALLY EACH VARIABLE FROM CONFIG.JSON TO USE IT WHICH IS INNIFIECIENT
-namespace ShittyTea
+namespace TelegramBot
 {
     static class Program
     {
@@ -180,19 +180,19 @@ namespace ShittyTea
                 }
                 else if (e.Message.Text.Contains("/help", StringComparison.OrdinalIgnoreCase))
                 {
-                    await botClient.SendTextMessageAsync(e.Message.Chat, "To get full list of commands do /IdoNotKnowTheSyntaxOfThisBotAndMyLifeIsFullOfShameAndSorrow");
+                    await botClient.SendTextMessageAsync(e.Message.Chat, "To get full list of commands do /commands");
                     await botClient.SendTextMessageAsync(e.Message.Chat, "To get list of AWS commands do /aws");
                 }
-                else if (e.Message.Text.Contains("/IdoNotKnowTheSyntaxOfThisBot", StringComparison.OrdinalIgnoreCase))
+                else if (e.Message.Text.Contains("/commands", StringComparison.OrdinalIgnoreCase))
                 {
-                    await botClient.SendTextMessageAsync(e.Message.Chat, "/IdoNotKnowTheSyntaxOfThisBot -- Help Menu\n" +
+                    await botClient.SendTextMessageAsync(e.Message.Chat, "/commands -- Help Menu\n" +
                         "/balance -- View how many cow credits you have\n/creditsFull -- View everyones available credits\n/transfer <#ofCredits> <username> -- Give someone credits(no spaces)\n/ctfUp -- Upcoming ctf's according to ctftime" + 
                         "\n/verbOff -- Turns off getting told when you are given credit for saying something\n/verbOn -- Turns on getting told when you are given credit.\n/searchsploit <term> -- Gives exploits back (if a lot of exploits it wont spit any).\n/searchsploit -m <path> -- Sends exploit over telegram.\nA lot of commands are possition sensitive like the path has to be one space after the m but transfer needs to have no space inbetween \"to\" and username so make sure you use commands exactly possitioned like in this menu." + 
-                        "\n/IamGayIfIuseThis \"(Message)\" (# of spam)\nUpload a single document/file with the caption of /upload for it to upload to AWS\n/download <file name> -- Have telegram send you file from AWS");
+                        "\n/spammer \"(Message)\" (# of spam)\nUpload a single document/file with the caption of /upload for it to upload to AWS\n/download <file name> -- Have telegram send you file from AWS");
                 }
-                else if(e.Message.Text.Contains("/IamGayIfIuseThis", StringComparison.OrdinalIgnoreCase))
+                else if(e.Message.Text.Contains("/spammer", StringComparison.OrdinalIgnoreCase))
                 {
-                    string toCompare = "/(?i)iamgayifiusethis \"(?<spamsg>.*)\" (?<count>.*)";
+                    string toCompare = "/(?i)spammer \"(?<spamsg>.*)\" (?<count>.*)";
                     var match = Regex.Match(e.Message.Text, toCompare);
                     string messageToSpam = "";
                     int count = 0;
@@ -205,7 +205,7 @@ namespace ShittyTea
                         Console.WriteLine(count);
                         if (count <= 0)
                         {
-                            await botClient.SendTextMessageAsync(e.Message.Chat, "format is /iamgayifiusethis \"(message)\" (amount spammed)");
+                            await botClient.SendTextMessageAsync(e.Message.Chat, "format is /spammer \"(message)\" (amount spammed)");
                         }
                         else 
                         {
@@ -217,7 +217,7 @@ namespace ShittyTea
                     }
                     catch
                     {
-                        await botClient.SendTextMessageAsync(e.Message.Chat, "Format is /iamgayifiusethis \"(message)\" (amount to spam)");
+                        await botClient.SendTextMessageAsync(e.Message.Chat, "Format is /spammer \"(message)\" (amount to spam)");
                     }
                 }
                 /*else if(e.Message.Text.Equals("/upload"))
@@ -464,7 +464,7 @@ namespace ShittyTea
                 realAmount = Convert.ToInt32(amount);
                 if (realAmount <= 0)
                 {
-                    return $"Fuck off {fromUsername}.";
+                    return $"Do not try {fromUsername}.";
                 }
             }
             catch
@@ -574,7 +574,7 @@ namespace ShittyTea
         {
             setConfigOps();
             var me = botClient.GetMeAsync().Result;
-            Console.WriteLine($"Hey fags, I am {me.Id} but u can call me {me.FirstName}.");
+            Console.WriteLine($"Hello, I am {me.Id} but u can call me {me.FirstName}.");
             botClient.OnMessage += Bot_OnMessage;
             botClient.StartReceiving();
             Console.ReadKey();
