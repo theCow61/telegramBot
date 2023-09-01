@@ -8,7 +8,7 @@ using Amazon.S3.Model;
 using Amazon.Runtime.Internal.Util;
 using ByteSizeLib;
 
-namespace ShittyTea
+namespace TelegramBot
 {
     public class AWSworker
     {
